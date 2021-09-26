@@ -23,6 +23,23 @@ class Excel_import extends CI_Controller {
 		{  
             $idEmpresa = $this->input->post('id-empresa');
             $cerradura = $this->input->post('cerradura');
+            $tipos = $this->input->post('tipos');
+            $idMarca = $this->input->post('id-marca');
+            $notas = $this->input->post('notas');
+
+            // Get indexes of tipos string.. Ej: 'I,J,K' => [8,9,10]
+            $tipos = explode(',', $tipos);
+            foreach($tipos as $key => $tipo) {
+                $tipos[$key] = $this->letterToNumber($tipo);
+            }
+            // Get indexes of notas string.. Ej: 'I,J,K' => [8,9,10]
+            $notas = explode(',', $notas);
+            foreach($notas as $key => $nota) {
+                $notas[$key] = $this->letterToNumber($nota);
+            }  
+            // echo "<pre>";
+            //         var_dump('' ?? 'algo');
+            //         exit;          
             
             $path = $_FILES["excel-file"]["tmp_name"];
 			$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
@@ -45,7 +62,7 @@ class Excel_import extends CI_Controller {
             ')->row()->maxIdUbicacion;
             $maxIdUbicacion++;
 
-            $maxIdHerramienta = $this->db->query('Select MAX(idUbicacion) as maxIdHerramienta from herramientas 
+            $maxIdHerramienta = $this->db->query('Select MAX(idHerramienta) as maxIdHerramienta from herramientas 
             ')->row()->maxIdHerramienta;
             $maxIdHerramienta++;
 
@@ -67,10 +84,51 @@ class Excel_import extends CI_Controller {
                     );
                     $maxIdUbicacion++;
                 }
+                //Get tipos
+                $rowValues = array_values($row);
+                $idTipo = '';
+                foreach ($tipos as $tipoIndex) {
+                    if(!empty($rowValues[$tipoIndex]))
+                        $idTipo .= $rowValues[$tipoIndex].','; 
+                }
+                $idTipo = rtrim($idTipo, ',');
+
+                $notasInfo = '';
+                foreach ($notas as $notaIndex) {
+                    if(!empty($rowValues[$notaIndex]))
+                        $notasInfo .= $rowValues[$notaIndex].'|'; 
+                }
+                $notasInfo = rtrim($notasInfo, '|');
+
+                //How many tools create for row
+                $numberToolsForRow = ((!empty($row['Inv'])) ? $row['Inv'] : 0) + 
+                               ((!empty($row['M Inv'])) ? $row['M Inv'] : 0);
+                
+                $numberToolsForRow = $numberToolsForRow == 0 ? 1 : $numberToolsForRow;   
+                
+                for($i = 1; $i <= $numberToolsForRow; $i++) {
+                    $herramientas[] = array_merge([
+                        'idHerramienta' => $maxIdHerramienta,
+                        'codigo' => $maxIdHerramienta.$row['ToolNo'].$idMarca,
+                        'descripcion' => $row['Description'],
+                        'idTipo' => $idTipo,
+                        'idMarca' => $idMarca,
+                        'estado' => 'Activo',
+                        'nroSerie' => $row['ToolNo'],
+                        'datalle' => $notasInfo.'0'.$row['ToolNo'],
+                        'idUbicacion' => '1', //TODO
+                        'imagen' => $row['ToolNo'].'.jpg',
+                    ], $this->defaulToolValues());
+                   
+                    $maxIdHerramienta++;
+                }                 
             }
            
-            echo '<pre>';
-            var_dump($ubicaciones);
+            echo "<pre>";
+                    var_dump($herramientas);
+                    exit;
+            // echo '<pre>';
+            // var_dump($ubicaciones);
             exit;
             $this->load->view('header');
             $this->load->view('salida', ['usuarios' => $data]);
@@ -107,8 +165,16 @@ class Excel_import extends CI_Controller {
             'stockMinimo' => 0,
             'fechaAlta' => date('Y-m-d H:i'),
             'fechaBaja' => date('Y-m-d H:i'),
-            'idUbicacionAlternativa' => date('Y-m-d H:i'),
+            'idUbicacionAlternativa' => null,
         ];
+    }
+
+    public function letterToNumber($letter)
+    {
+        if ($letter)
+            return ord(strtolower($letter)) - 96 - 1;
+        else
+            return 0;
     }
 
     public function storeUsers()

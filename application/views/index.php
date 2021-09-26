@@ -29,6 +29,20 @@
         </div>
 
         <div class="form-group row mt-3">
+            <label for="tipos" class="col-sm-5 col-4 col-form-label">Tipos</label>
+            <div class="col-sm-4 col-4">
+            <input type="text" class="form-control form-control" name="tipos" id="tipos" placeholder="I,J,K,L" required>
+            </div>
+        </div>
+
+        <div class="form-group row mt-3">
+            <label for="notas" class="col-sm-5 col-4 col-form-label">Notas</label>
+            <div class="col-sm-4 col-4">
+            <input type="text" class="form-control form-control" name="notas" id="notas" placeholder="E,Q" required>
+            </div>
+        </div>
+
+        <div class="form-group row mt-3">
             <label for="id-marca" class="col-sm-5 col-4 col-form-label">idMarca</label>
             <div class="col-sm-4 col-4">
             <select name="id-marca" id="id-marca" class="form-control">
