@@ -18,83 +18,97 @@ class Excel_import extends CI_Controller {
 	}
 
     public function mostrar()
-    {    
-        $this->form_validation->set_rules('id-empresa', 'Id-empresa', 'required|numeric', [
-            'required' => 'El campo ID empresa es requerido',
-            'numeric' => 'El campo ID empresa debe ser un número',
-        ]);
-        $this->form_validation->set_rules('index-start', 'index-start', 'required|numeric', [
-            'required' => 'El campo primera fila es requerido',
-            'numeric' => 'El campo primera fila debe ser un número',
-        ]);        
-
-        if ($this->form_validation->run() == FALSE)
-        {
-            $this->session->set_flashdata('errors', validation_errors());
-            redirect(base_url('index.php/excel'));
-        }
-        
+    {         
         if(isset($_FILES["excel-file"]["name"]))
-		{      
-            $this->db = $this->load->database( 'zf2xzpil_tg__admin' ,true);
-            //Find max id from admin.usuarios table
-            $maxIdUsuario = $this->db->query('Select MAX(idUsuario) as maxIdUsuario from usuarios 
-            ')->row()->maxIdUsuario;
-
-            $maxIdUsuario++;
-
+		{  
+            $idEmpresa = $this->input->post('id-empresa');
+            $cerradura = $this->input->post('cerradura');
+            
             $path = $_FILES["excel-file"]["tmp_name"];
 			$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
-            $worksheet = $spreadsheet->getActiveSheet();
-                    
-            $highestRow = $worksheet->getHighestRow();
-            $highestColumn = $worksheet->getHighestColumn();
-            $highestColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
-
-            $data = [];
-            $rowStart = $this->input->post('index-start');
-            $idEmpresa = $this->input->post('id-empresa');
-
-            for ($row = $rowStart; $row <= $highestRow; ++$row) {
-                if(empty($worksheet->getCellByColumnAndRow(1, $row)->getValue())) {
-                    break;
+            $worksheet = $spreadsheet->getActiveSheet();            
+            // Convert spread sheet to array
+            $data = $worksheet->toArray();
+            // Getting the headings values and combining with the rows
+            $headings = array_shift($data);
+            array_walk(
+                $data,
+                function (&$row) use ($headings) {
+                    $row = array_combine($headings, $row);
                 }
+            );
 
-                $firstName = $worksheet->getCellByColumnAndRow(2, $row)->getValue();
-                $lastName = $worksheet->getCellByColumnAndRow(3, $row)->getValue();
-                $isAdmin = $worksheet->getCellByColumnAndRow(4, $row)->getValue();
-                $cellNumber = $worksheet->getCellByColumnAndRow(5, $row)->getValue();
-                $email = $worksheet->getCellByColumnAndRow(6, $row)->getValue();
+            $ubicaciones = [];
+            $herramientas = [];
+            
+            $maxIdUbicacion = $this->db->query('Select MAX(idUbicacion) as maxIdUbicacion from ubicaciones 
+            ')->row()->maxIdUbicacion;
+            $maxIdUbicacion++;
 
-                $data[] = [
-                    'idUsuario' => $maxIdUsuario,
-                    'usuario' => $lastName,
-                    'apellido' => $lastName,
-                    'nombre' => $firstName,
-                    'dni' => 0,
-                    'celular' => $cellNumber,
-                    'idSucursal' => 1,
-                    'email' => $email,
-                    'password' => rand(0,9).rand(0,9).rand(0,9),
-                    'estado' => 'Activo',
-                    'perfil' => $isAdmin === 'Y' ? 2 : 0,
-                    'tipo' => $isAdmin === 'Y' ? 2 : 0,
-                    'imagen' => '-',
-                    'idIdioma' => 1,
-                    'fechaAlta' => date('d-m-Y H:i'),
-                    'fechaBaja' => date('d-m-Y H:i'),
-                    'idEmpresa' => $idEmpresa,
-                    'idUsuarioAdmin' => $maxIdUsuario,
-                ];                
-               
-                $maxIdUsuario++;
+            $maxIdHerramienta = $this->db->query('Select MAX(idUbicacion) as maxIdHerramienta from herramientas 
+            ')->row()->maxIdHerramienta;
+            $maxIdHerramienta++;
+
+            // Setting ubicaciones data
+            foreach($data as $row) {
+                if(!empty($row['Location'])) {
+                    $ubicaciones[] = $this->fillUbicacion(
+                       $row['Location'], 
+                       $maxIdUbicacion, 
+                       $cerradura
+                    );
+                    $maxIdUbicacion++;
+                }
+                if(!empty($row['M Location'])) {                    
+                    $ubicaciones[] = $this->fillUbicacion(
+                        $row['M Location'], 
+                        $maxIdUbicacion, 
+                        $cerradura
+                    );
+                    $maxIdUbicacion++;
+                }
             }
-               
+           
+            echo '<pre>';
+            var_dump($ubicaciones);
+            exit;
             $this->load->view('header');
             $this->load->view('salida', ['usuarios' => $data]);
             $this->load->view('footer');          
         }        
 
+    }
+
+    public function fillUbicacion($ubicacion, $id, $cerradura = 0)
+    {
+        return [
+            'idUbicacion' => $id,
+            'descripcion' => $ubicacion,
+            'idGrupo' => 1,
+            'idSucursal' => 1,
+            'idCerradura' => $cerradura,
+            'estado' => 'activo',
+        ];
+    }
+
+    public function defaulToolValues()
+    {
+        return [
+            'valor' => 0,
+            'valorRecidual' => 0,
+            'fechaInicio' => date('Y-m-d'),
+            'fechaFin' => date('Y-m-d'),
+            'valorRecidual' => 0,
+            'daniada' => 0,
+            'prestada' => 0,
+            'observacionesPrestada' => 0,
+            'consumible' => 0,
+            'stock' => 0,
+            'stockMinimo' => 0,
+            'fechaAlta' => date('Y-m-d H:i'),
+            'fechaBaja' => date('Y-m-d H:i'),
+            'idUbicacionAlternativa' => date('Y-m-d H:i'),
+        ];
     }
 
     public function storeUsers()
