@@ -143,7 +143,7 @@ class Excel_import extends CI_Controller {
                 
                 if(!empty($mulInvField)) {
                     //Add tools for every number of inv
-                    for($i = 1; $i <= $numberOfInv; $i++) {
+                    for($i = 1; $i <= $numberOfMulInv; $i++) {
                         $herramientas[] = array_merge([
                             'idHerramienta' => $maxIdHerramienta,
                             'codigo' => $maxIdHerramienta.$toolNumberField.$idMarca,
