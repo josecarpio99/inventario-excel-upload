@@ -55,5 +55,5 @@ $route['translate_uri_dashes'] = FALSE;
 
 $route['excel_import'] = 'Excel_import/index';
 $route['excel/mostrar']['post'] = 'Excel_import/mostrar';
-$route['excel/store_admin_users']['post'] = 'Excel_import/storeAdminUsers';
-$route['excel/store_users']['post'] = 'Excel_import/storeUsers';
+$route['excel/store_ubicaciones']['post'] = 'Excel_import/storeUbicaciones';
+$route['excel/store_herramientas']['post'] = 'Excel_import/storeHerramientas';

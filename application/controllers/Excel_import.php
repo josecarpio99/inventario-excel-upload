@@ -21,41 +21,46 @@ class Excel_import extends CI_Controller {
     {         
         if(isset($_FILES["excel-file"]["name"]))
 		{  
+            $toolNumber = $this->input->post('tool-number');
+            $inv = $this->input->post('inv');
+            $mulInv = $this->input->post('mul-inv');
+            $location = $this->input->post('location');
+            $mulLocation = $this->input->post('mul-location');
+            $description = $this->input->post('description');
             $idEmpresa = $this->input->post('id-empresa');
             $cerradura = $this->input->post('cerradura');
             $tipos = $this->input->post('tipos');
             $idMarca = $this->input->post('id-marca');
             $notas = $this->input->post('notas');
 
+            $toolNumberIndex = $this->letterToNumber($toolNumber);
+            $invIndex = $this->letterToNumber($inv);
+            $mulInvIndex = $this->letterToNumber($mulInv);
+            $locationIndex = $this->letterToNumber($location);
+            $mulLocationIndex = $this->letterToNumber($mulLocation);
+            $descriptionIndex = $this->letterToNumber($description);
+
             // Get indexes of tipos string.. Ej: 'I,J,K' => [8,9,10]
-            $tipos = explode(',', $tipos);
-            foreach($tipos as $key => $tipo) {
-                $tipos[$key] = $this->letterToNumber($tipo);
+            $tiposIndexes = explode(',', $tipos);
+            foreach($tiposIndexes as $key => $tipo) {
+                $tiposIndexes[$key] = $this->letterToNumber($tipo);
             }
             // Get indexes of notas string.. Ej: 'I,J,K' => [8,9,10]
-            $notas = explode(',', $notas);
-            foreach($notas as $key => $nota) {
-                $notas[$key] = $this->letterToNumber($nota);
-            }  
-            // echo "<pre>";
-            //         var_dump('' ?? 'algo');
-            //         exit;          
+            $notasIndexes = explode(',', $notas);
+            foreach($notasIndexes as $key => $nota) {
+                $notasIndexes[$key] = $this->letterToNumber($nota);
+            }
             
             $path = $_FILES["excel-file"]["tmp_name"];
 			$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
             $worksheet = $spreadsheet->getActiveSheet();            
             // Convert spread sheet to array
             $data = $worksheet->toArray();
-            // Getting the headings values and combining with the rows
-            $headings = array_shift($data);
-            array_walk(
-                $data,
-                function (&$row) use ($headings) {
-                    $row = array_combine($headings, $row);
-                }
-            );
+            // Remove first row
+            array_shift($data);      
 
             $ubicaciones = [];
+            $ubicacionesData = [];
             $herramientas = [];
             
             $maxIdUbicacion = $this->db->query('Select MAX(idUbicacion) as maxIdUbicacion from ubicaciones 
@@ -66,72 +71,101 @@ class Excel_import extends CI_Controller {
             ')->row()->maxIdHerramienta;
             $maxIdHerramienta++;
 
-            // Setting ubicaciones data
+            
             foreach($data as $row) {
-                if(!empty($row['Location'])) {
-                    $ubicaciones[] = $this->fillUbicacion(
-                       $row['Location'], 
-                       $maxIdUbicacion, 
-                       $cerradura
-                    );
-                    $maxIdUbicacion++;
+                $locationField = null;
+                $mulLocationField = null;
+                // Setting ubicaciones data
+                if(!empty($row[$locationIndex])) {
+                    // Check if location exist
+                    $location = $row[$locationIndex];                   
+                    if(!isset($ubicaciones[$location])) {
+                        $ubicaciones[$location] = $maxIdUbicacion;
+                        $locationField = $maxIdUbicacion;
+                        $ubicacionesData[] = $this->fillUbicacion(
+                            $location, 
+                            $locationField, 
+                            $cerradura
+                        );
+                        $maxIdUbicacion++;
+                    }else {
+                        $locationField = $ubicaciones[$location];                         
+                    }   
                 }
-                if(!empty($row['M Location'])) {                    
-                    $ubicaciones[] = $this->fillUbicacion(
-                        $row['M Location'], 
-                        $maxIdUbicacion, 
-                        $cerradura
-                    );
-                    $maxIdUbicacion++;
+                if(!empty($row[$mulLocationIndex])) {
+                    // Check if location exist                   
+                    $mulLocation = $row[$mulLocationIndex];                                  
+                    if(!isset($ubicaciones[$mulLocation])) {
+                        $ubicaciones[$mulLocation] = $maxIdUbicacion;
+                        $mulLocationField = $maxIdUbicacion;
+                        $ubicacionesData[] = $this->fillUbicacion(
+                            $mulLocation, 
+                            $mulLocationField, 
+                            $cerradura
+                        );
+                        $maxIdUbicacion++;
+                    }else {
+                        $mulLocationField = $ubicaciones[$mulLocation];
+                    }                       
                 }
-                //Get tipos
-                $rowValues = array_values($row);
-                $idTipo = '';
-                foreach ($tipos as $tipoIndex) {
-                    if(!empty($rowValues[$tipoIndex]))
-                        $idTipo .= $rowValues[$tipoIndex].','; 
-                }
-                $idTipo = rtrim($idTipo, ',');
+                //Get tipos                
+                $tipoField = $this->getTipo($row, $tiposIndexes);                
 
-                $notasInfo = '';
-                foreach ($notas as $notaIndex) {
-                    if(!empty($rowValues[$notaIndex]))
-                        $notasInfo .= $rowValues[$notaIndex].'|'; 
-                }
-                $notasInfo = rtrim($notasInfo, '|');
-
-                //How many tools create for row
-                $numberToolsForRow = ((!empty($row['Inv'])) ? $row['Inv'] : 0) + 
-                               ((!empty($row['M Inv'])) ? $row['M Inv'] : 0);
+                $notaField = $this->getNota($row, $notasIndexes);
+                $invField = $row[$invIndex];
+                $mulInvField = $row[$mulInvIndex];
+                // Remove ' and " from description
+                $descriptionField =  str_replace(['"',"'"], '', $row[$descriptionIndex]) ;
+                $toolNumberField = $row[$toolNumberIndex];
+                $detalleToolNumber = str_replace([' ','-','_' ], '', $toolNumberField);
                 
-                $numberToolsForRow = $numberToolsForRow == 0 ? 1 : $numberToolsForRow;   
+                // How many tools create for inv
+                $numberOfInv = (empty($invField)) ? 1 : $invField;
+                $numberOfMulInv = (empty($mulInvField)) ? 1 : $mulInvField;               
                 
-                for($i = 1; $i <= $numberToolsForRow; $i++) {
+                // Add tools for every number of inv
+                for($i = 1; $i <= $numberOfInv; $i++) {
                     $herramientas[] = array_merge([
                         'idHerramienta' => $maxIdHerramienta,
-                        'codigo' => $maxIdHerramienta.$row['ToolNo'].$idMarca,
-                        'descripcion' => $row['Description'],
-                        'idTipo' => $idTipo,
+                        'codigo' => $maxIdHerramienta.$toolNumberField.$idMarca,
+                        'descripcion' => empty($descriptionField) ? 'Special Tool' : $descriptionField,
+                        'idTipo' => $tipoField,
                         'idMarca' => $idMarca,
-                        'estado' => 'Activo',
-                        'nroSerie' => $row['ToolNo'],
-                        'datalle' => $notasInfo.'0'.$row['ToolNo'],
-                        'idUbicacion' => '1', //TODO
-                        'imagen' => $row['ToolNo'].'.jpg',
+                        'estado' => (empty($invField)) ? 'Inactivo' : 'Activo',
+                        'nroSerie' => $toolNumberField,
+                        'detalle' => $notaField.'0'.$detalleToolNumber,
+                        'idUbicacion' => $locationField,
+                        'imagen' => $toolNumberField.'.jpg',
                     ], $this->defaulToolValues());
                    
                     $maxIdHerramienta++;
-                }                 
-            }
-           
-            echo "<pre>";
-                    var_dump($herramientas);
-                    exit;
-            // echo '<pre>';
-            // var_dump($ubicaciones);
-            exit;
+                }  
+                
+                if(!empty($mulInvField)) {
+                    //Add tools for every number of inv
+                    for($i = 1; $i <= $numberOfInv; $i++) {
+                        $herramientas[] = array_merge([
+                            'idHerramienta' => $maxIdHerramienta,
+                            'codigo' => $maxIdHerramienta.$toolNumberField.$idMarca,
+                            'descripcion' => empty($descriptionField) ? 'Special Tool' : $descriptionField,
+                            'idTipo' => $tipoField,
+                            'idMarca' => $idMarca,
+                            'estado' => (empty($mulInvField)) ? 'Inactivo' : 'Activo',
+                            'nroSerie' => $toolNumberField,
+                            'detalle' => $notaField.'0'.$detalleToolNumber,
+                            'idUbicacion' => $mulLocationField,
+                            'imagen' => $toolNumberField.'.jpg',
+                        ], $this->defaulToolValues());
+                    
+                        $maxIdHerramienta++;
+                    }  
+                }
+            }          
             $this->load->view('header');
-            $this->load->view('salida', ['usuarios' => $data]);
+            $this->load->view('salida', [
+                'tools' => $herramientas,
+                'ubicaciones' => $ubicacionesData,
+            ]);
             $this->load->view('footer');          
         }        
 
@@ -163,8 +197,10 @@ class Excel_import extends CI_Controller {
             'consumible' => 0,
             'stock' => 0,
             'stockMinimo' => 0,
+            'idUnidad' => 1,
             'fechaAlta' => date('Y-m-d H:i'),
             'fechaBaja' => date('Y-m-d H:i'),
+            'idSucursal' => 1,
             'idUbicacionAlternativa' => null,
         ];
     }
@@ -177,25 +213,55 @@ class Excel_import extends CI_Controller {
             return 0;
     }
 
-    public function storeUsers()
+    public function getTipo($row, $indexes)
     {
-        $usuarios = $this->input->post('usuarios');
-        foreach($usuarios as $usuario) {
-            $usuario['fechaAlta'] = date('Y-m-d H:i' ,strtotime($usuario['fechaAlta']));
-            $usuario['fechaBaja'] = date('Y-m-d H:i' ,strtotime($usuario['fechaBaja']));
-            $this->db->insert('usuarios', $usuario);
+        $string = '';
+        foreach ($indexes as $index) {
+            if(!empty($row[$index])) {
+                $value = trim($row[$index], '*');
+                $string .= $value.','; 
+            }
+        }
+        $string = rtrim($string, ',');
+        if(stripos($string, 'E') !== false) {
+            return 23;
+        }
+        if(stripos($string, 'R') !== false) {
+            return 22;
+        }
+        if(stripos($string, 'A') !== false) {
+            return 21;
+        }
+        if(stripos($string, 'L') !== false || stripos($string, 'Legacy') !== false) {
+            return 20;
+        }
+        return 1;
+    }
+
+    public function getNota($row, $indexes)
+    {
+        $result = '';
+        foreach ($indexes as $index) {
+            if(!empty($row[$index]))
+                $result .= $row[$index].'|'; 
+        }
+        return $result;
+    }
+
+    public function storeUbicaciones()
+    {
+        $ubicaciones = $this->input->post('ubicaciones');
+        foreach($ubicaciones as $ubicacion) {                
+            $this->db->insert('ubicaciones', $ubicacion);
         }
         echo json_encode(["status" => "success"]);
     }
 
-    public function storeAdminUsers()
+    public function storeHerramientas()
     {
-        $usuarios = $this->input->post('usuarios');       
-        $this->db = $this->load->database( 'zf2xzpil_tg__admin' ,true);
-        foreach($usuarios as $usuario) {
-            $usuario['fechaAlta'] = date('Y-m-d H:i' ,strtotime($usuario['fechaAlta']));
-            $usuario['fechaBaja'] = date('Y-m-d H:i' ,strtotime($usuario['fechaBaja']));
-            $this->db->insert('usuarios', $usuario);         
+        $herramientas = $this->input->post('herramientas');          
+        foreach($herramientas as $herramienta) {           
+            $this->db->insert('herramientas', $herramienta);         
         }
         echo json_encode(["status" => "success"]);
     }

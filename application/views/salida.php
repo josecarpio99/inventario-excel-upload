@@ -1,114 +1,105 @@
 <div>
-    <h2 class="text-center">Tabla Admin</h2>
-    <div class="table-responsive">
-        <table class="table table-striped mt-3">
-            <thead>
-                <tr>
-                <th scope="col">idUsuario</th>
-                <th scope="col">USER</th>
-                <th scope="col">email</th>
-                <th scope="col">password</th>
-                <th scope="col">estado</th>
-                <th scope="col">perfil</th>
-                <th scope="col">idIdioma</th>
-                <th scope="col">fechaAlta</th>
-                <th scope="col">fechaBaja</th>
-                <th scope="col">idEmpresa</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach($usuarios as $usuario): ?>
+    <h2 class="text-center">Tabla Ubicaciones</h2>
+
+        <div class="table-responsive">
+            <table class="table table-striped mt-3">
+                <thead>
                     <tr>
-                        <td><?= $usuario['idUsuario'] ?></td>
-                        <td><?= $usuario['usuario'] ?></td>
-                        <td><?= $usuario['email'] ?></td>
-                        <td><?= $usuario['password'] ?></td>
-                        <td><?= $usuario['estado'] ?></td>
-                        <td><?= $usuario['perfil'] ?></td>
-                        <td><?= $usuario['idIdioma'] ?></td>
-                        <td><?= $usuario['fechaAlta'] ?></td>
-                        <td><?= $usuario['fechaBaja'] ?></td>
-                        <td><?= $usuario['idEmpresa'] ?></td>
+                    <th scope="col">idUbicacion</th>
+                    <th scope="col">idGrupo</th>
+                    <th scope="col">Descripcion</th>
+                    <th scope="col">idSucursal</th>
+                    <th scope="col">idCerradura</th>
+                    <th scope="col">estado</th>                
                     </tr>
-                <?php endforeach ?>
-            </tbody>    
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    <?php foreach($ubicaciones as $ubicacion): ?>
+                        <tr>
+                            <td><?= $ubicacion['idUbicacion'] ?></td>                        
+                            <td><?= $ubicacion['idGrupo'] ?></td>                        
+                            <td><?= $ubicacion['descripcion'] ?></td>                        
+                            <td><?= $ubicacion['idSucursal'] ?></td>                        
+                            <td><?= $ubicacion['idCerradura'] ?></td>                        
+                            <td><?= $ubicacion['estado'] ?></td>                        
+                        </tr>
+                    <?php endforeach ?>
+                </tbody>    
+            </table>
+        </div>
+
     <div class="text-center mt-3">
         <a href="<?= base_url('excel_import') ?>" class="btn btn-secondary">Volver</a>
         <button id="submit-salida-1-btn" class="btn btn-secondary">Guardar</button>        
     </div>
     <hr>
-    <h2 class="text-center mt-5">Tabla Usuarios</h2>                    
-    <div class="table-responsive">
-        <table class="table table-striped mt-3">
-            <thead>
-                <tr>
-                <th scope="col">idUsuario</th>
-                <th scope="col">USER</th>
-                <th scope="col">apellido</th>
-                <th scope="col">nombre</th>
-                <th scope="col">dni</th>
-                <th scope="col">email</th>
-                <th scope="col" style="min-width: 120px;">celular</th>
-                <th scope="col">idSucursal</th>
-                <th scope="col">password</th>
-                <th scope="col">estado</th>
-                <th scope="col">tipo</th>
-                <th scope="col" style="min-width: 140px;">fechaAlta</th>
-                <th scope="col" style="min-width: 140px;">fechaBaja</th>
-                <th scope="col">imagen</th>
-                <th scope="col">idIdioma</th>
-                <th scope="col">idEmpresa</th>
-                <th scope="col">idUsuarioAdmin</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>_share</td>
-                    <td>share</td>
-                    <td>share</td>
-                    <td>0</td>
-                    <td>share@share</td>
-                    <td>0</td>
-                    <td>1</td>
-                    <td>85602</td>
-                    <td>Activo</td>
-                    <td>1</td>
-                    <td><?= $usuarios[0]['fechaAlta'] ?></td>
-                    <td><?= $usuarios[0]['fechaBaja'] ?></td>
-                    <td>-</td>
-                    <td>1</td>
-                    <td><?= $usuarios[0]['idEmpresa'] ?></td>
-                    <td>-1</td>
-                </tr>
-                <?php $count = 2; ?>
-                <?php foreach($usuarios as $usuario): ?>
+    <h2 class="text-center mt-5">Tabla Herramientas</h2>                    
+        <div class="table-responsive">
+            <table class="table table-striped mt-3">
+                <thead>
                     <tr>
-                        <td><?= $count ?></td>
-                        <td><?= $usuario['usuario'] ?></td>
-                        <td><?= $usuario['apellido'] ?></td>
-                        <td><?= $usuario['nombre'] ?></td>
-                        <td><?= $usuario['dni'] ?></td>
-                        <td><?= $usuario['email'] ?></td>
-                        <td><?= $usuario['celular'] ?></td>
-                        <td><?= $usuario['idSucursal'] ?></td>
-                        <td><?= $usuario['password'] ?></td>
-                        <td><?= $usuario['estado'] ?></td>
-                        <td><?= $usuario['tipo'] ?></td>
-                        <td><?= $usuario['fechaAlta'] ?></td>
-                        <td><?= $usuario['fechaBaja'] ?></td>
-                        <td><?= $usuario['imagen'] ?></td>
-                        <td><?= $usuario['idIdioma'] ?></td>
-                        <td><?= $usuario['idEmpresa'] ?></td>
-                        <td><?= $usuario['idUsuarioAdmin'] ?></td>
+                    <th scope="col">idHerramienta</th>
+                    <th scope="col">codigo</th>
+                    <th scope="col">descripcion</th>
+                    <th scope="col">idTipo</th>
+                    <th scope="col">idMarca</th>
+                    <th scope="col">valor</th>
+                    <th scope="col" style="min-width: 120px;">valorRecidual</th>
+                    <th scope="col">fechaInicio</th>
+                    <th scope="col">fechaFin</th>
+                    <th scope="col">estado</th>
+                    <th scope="col">daniada</th>
+                    <th scope="col">prestada</th>
+                    <th scope="col">observacionesPrestada</th>
+                    <th scope="col">consumible</th>
+                    <th scope="col">stock</th>
+                    <th scope="col">stockMinimo</th>
+                    <th scope="col">idUnidad</th>
+                    <th scope="col">fechaAlta</th>
+                    <th scope="col">fechaBaja</th>
+                    <th scope="col">nroSerie</th>
+                    <th scope="col">detalle</th>
+                    <th scope="col">idSucursal</th>
+                    <th scope="col">idUbicacion</th>
+                    <th scope="col">idUbicacionAlternativa</th>
+                    <th scope="col">imagen</th>
                     </tr>
-                    <?php $count++; ?>
-                <?php endforeach ?>
-            </tbody>    
-        </table>
-    </div>
+                </thead>
+                <tbody>                 
+                    <?php foreach($tools as $tool): ?>
+                        <tr>                        
+                            <td><?= $tool['idHerramienta'] ?></td>
+                            <td><?= $tool['codigo'] ?></td>
+                            <td><?= $tool['descripcion'] ?></td>
+                            <td><?= $tool['idTipo'] ?></td>
+                            <td><?= $tool['idMarca'] ?></td>
+                            <td><?= $tool['valor'] ?></td>
+                            <td><?= $tool['valorRecidual'] ?></td>
+                            <td><?= $tool['fechaInicio'] ?></td>
+                            <td><?= $tool['fechaFin'] ?></td>
+                            <td><?= $tool['estado'] ?></td>
+                            <td><?= $tool['daniada'] ?></td>
+                            <td><?= $tool['prestada'] ?></td>
+                            <td><?= $tool['observacionesPrestada'] ?></td>
+                            <td><?= $tool['consumible'] ?></td>
+                            <td><?= $tool['stock'] ?></td>
+                            <td><?= $tool['stockMinimo'] ?></td>
+                            <td><?= $tool['idUnidad'] ?></td>
+                            <td><?= $tool['fechaAlta'] ?></td>
+                            <td><?= $tool['fechaBaja'] ?></td>
+                            <td><?= $tool['nroSerie'] ?></td>
+                            <td><?= $tool['detalle'] ?></td>
+                            <td><?= $tool['idSucursal'] ?></td>
+                            <td><?= $tool['idUbicacion'] ?></td>
+                            <td><?= $tool['idUbicacionAlternativa'] ?></td>
+                            <td><?= $tool['imagen'] ?></td>
+                        
+                        
+                        </tr>
+                    <?php endforeach ?>
+                </tbody>    
+            </table>
+        </div>
     <div class="text-center mt-3">
         <a href="<?= base_url('excel_import') ?>" class="btn btn-secondary">Volver</a>
         <button id="submit-salida-2-btn" class="btn btn-secondary">Guardar</button>        
@@ -116,7 +107,8 @@
 </div>    
 
 <script>
-    const usuarios = <?= json_encode($usuarios) ?>;
+    const herramientas = <?= json_encode($tools) ?>;
+    const ubicaciones = <?= json_encode($ubicaciones) ?>;
 
     const btnSalida1 = document.querySelector('#submit-salida-1-btn');   
     const btnSalida2 = document.querySelector('#submit-salida-2-btn');   
@@ -129,29 +121,11 @@
     {
         e.preventDefault();
         btnSalida1.disabled = true;        
-        let endpoint = '<?= base_url('excel/store_admin_users') ?>';
-        let = usersData = [];
-        usuarios.forEach( user => {
-            usersData = [
-                ...usersData,
-                {
-                   idUsuario: user.idUsuario,
-                   usuario: user.usuario,
-                   email: user.email,
-                   password: user.password,
-                   estado: user.estado,
-                   perfil: user.perfil,
-                   idIdioma: user.idIdioma,
-                   fechaAlta: user.fechaAlta,
-                   fechaBaja: user.fechaBaja,
-                   idEmpresa: user.idEmpresa 
-                }
-            ];
-        });        
+        let endpoint = '<?= base_url('excel/store_ubicaciones') ?>';             
         $.ajax({
             url:endpoint,
             method: 'post',
-            data: {usuarios: usersData},
+            data: {ubicaciones},
             dataType: 'json',
             success: function(res){
                 console.log(res);                  
@@ -168,26 +142,11 @@
     {
         e.preventDefault();
         btnSalida2.disabled = true;
-        let endpoint = '<?= base_url('excel/store_users') ?>';
-        let usersData = [];
-        //Add share user
-        usersData.push(getShareUser());
-        
-        usuarios.forEach( user => {            
-            let {
-                idUsuario,
-                perfil,
-                ...singleUser
-            } = user;
-            usersData = [
-                ...usersData, 
-                singleUser                
-            ];
-        });        
+        let endpoint = '<?= base_url('excel/store_herramientas') ?>';         
         $.ajax({
             url:endpoint,
             method: 'post',
-            data: {usuarios: usersData},
+            data: {herramientas},
             dataType: 'json',
             success: function(res){
                 console.log(res);                  
@@ -198,27 +157,5 @@
             }
         });  
     }
-
-    function getShareUser()
-    {
-        return {            
-            usuario:    '_share',
-            apellido:    'share',
-            nombre:    'share',
-            dni:    0,
-            email:    'share@share',
-            celular:    0,
-            idSucursal:    1,
-            password:    '85602',
-            estado:    'Activo',
-            tipo:    1,
-            fechaAlta:    usuarios[0].fechaAlta,
-            fechaBaja:    usuarios[0].fechaBaja,
-            imagen:    '-',
-            idIdioma:    1,
-            idEmpresa:    usuarios[0].idEmpresa,
-            idUsuarioAdmin:    -1,
-        };
-    }
-    
+      
 </script>
